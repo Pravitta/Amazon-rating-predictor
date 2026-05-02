@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.csv
+amazon_final_model/
+amazon_rf_model/
+amazon_rf_model_simple/
+hadoop/
+jre17/
+jre17.zip
+debug_output.txt
+temp_review.txt
+scratch/
+.ipynb_checkpoints/
+*.log
+*.pyc

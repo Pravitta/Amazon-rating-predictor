@@ -57,7 +57,7 @@ def main():
     tokenizer = Tokenizer(inputCol="Review Text", outputCol="words")
     
    
-    stopWordsRemover = StopWordsRemover(inputCol="words", outputCol="filtered_words"
+    stopWordsRemover = StopWordsRemover(inputCol="words", outputCol="filtered_words")
     ngram2 = NGram(n=2, inputCol="filtered_words", outputCol="b_grams")
     ngram3 = NGram(n=3, inputCol="filtered_words", outputCol="t_grams")
     ngram4 = NGram(n=4, inputCol="filtered_words", outputCol="q_grams")

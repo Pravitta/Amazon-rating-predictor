@@ -63,7 +63,10 @@ def predict():
             "rash", "allergic", "reaction", "toxic", "fake", "scam", "fraud", "shame",
             "terrible", "worst", "horrible", "awful", "useless", "avoid", "pathetic",
             "not work", "doesn't work", "stopped working", "fell apart", "flimsy",
-            "disappoint", "junk", "disaster", "dangerous", "hate", "bad", "sucks"
+            "disappoint", "junk", "disaster", "dangerous", "hate", "bad", "sucks",
+            "damaged", "defective", "missing", "dirty", "cheap", "scratched",
+            "unusable", "poor quality", "not recommended", "dont buy", "disappointed",
+            "stay away", "not worth", "terrible quality", "horrible experience", "waste of money"
         ]
         
         for marker in critical_1_star_markers:
@@ -125,22 +128,24 @@ def predict():
             
         # D. Strong Positive Overrides (ONLY if NOT mixed and NO performance issues)
         elif not is_mixed and perf_score > -3:
-            if any(w in review_lower for w in ["excellent", "perfect", "amazing", "love", "best", "sturdy", "durable", "worth it"]):
+            if any(w in review_lower for w in ["excellent", "perfect", "amazing", "love", "best", "sturdy", "durable", "worth it", "fantastic", "highly recommend", "great quality", "awesome"]):
                 if final_rating < 4.0: final_rating = 5.0
 
         # Granularity 0.5
         final_rating = round(final_rating * 2) / 2
         final_rating = max(1.0, min(5.0, final_rating))
         
-        return jsonify({
+        response = jsonify({
             'success': True, 
             'prediction': float(final_rating), 
             'review_text': review_text
         })
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     init_spark_and_model()
-    app.run(debug=False, host='127.0.0.1', port=5000, threaded=False)
+    app.run(debug=True, host='127.0.0.1', port=5000, threaded=False)

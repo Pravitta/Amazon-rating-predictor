@@ -35,8 +35,7 @@ def main():
     df = df.withColumn("Label", regexp_extract(col("Rating"), r"(\d+)", 1))
     clean_df = df.filter(col("Label").isNotNull() & (col("Label") != "") & col("Review Text").isNotNull() & (length(col("Review Text")) > 5))
     
-    # ── Massive Dataset Balancing ──
-    # We use more data to capture subtle patterns like "hurts after an hour"
+    
     target_count = 5000 
     dfs = []
     for i in range(1, 6):
@@ -54,19 +53,16 @@ def main():
     print("Balanced Data Distribution:")
     balanced_df.groupBy("Label").count().orderBy("Label").show()
     
-    # ── Deep Feature Engineering ──
+    
     tokenizer = Tokenizer(inputCol="Review Text", outputCol="words")
     
-    # Keep ALL sentiment-relevant words
-    stopWordsRemover = StopWordsRemover(inputCol="words", outputCol="filtered_words")
-    # We'll rely on TF-IDF to filter out truly useless words instead of aggressive removal
-    
-    # Capture Bi, Tri, and Quadgrams for complex phrases
+   
+    stopWordsRemover = StopWordsRemover(inputCol="words", outputCol="filtered_words"
     ngram2 = NGram(n=2, inputCol="filtered_words", outputCol="b_grams")
     ngram3 = NGram(n=3, inputCol="filtered_words", outputCol="t_grams")
     ngram4 = NGram(n=4, inputCol="filtered_words", outputCol="q_grams")
     
-    # Huge Feature Space (40k total)
+    
     hTF_1 = HashingTF(inputCol="filtered_words", outputCol="tf_1", numFeatures=10000)
     hTF_2 = HashingTF(inputCol="b_grams", outputCol="tf_2", numFeatures=10000)
     hTF_3 = HashingTF(inputCol="t_grams", outputCol="tf_3", numFeatures=10000)
@@ -81,7 +77,7 @@ def main():
     
     labelIndexer = StringIndexer(inputCol="Label", outputCol="label", stringOrderType="alphabetAsc")
     
-    # High-Iter Logistic Regression for convergence on nuanced patterns
+
     lr = LogisticRegression(featuresCol="features", labelCol="label", maxIter=200, regParam=0.005)
     
     pipeline = Pipeline(stages=[tokenizer, stopWordsRemover, ngram2, ngram3, ngram4, hTF_1, hTF_2, hTF_3, hTF_4, idf_1, idf_2, idf_3, idf_4, assembler, labelIndexer, lr])

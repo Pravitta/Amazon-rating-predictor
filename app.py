@@ -103,14 +103,19 @@ def predict():
         # ── Step 4: Final Sentiment Controller ──
         final_rating = model_score
         
+        # Mediocre Markers (3-star territory)
+        mediocre_markers = ["just okay", "average", "nothing special", "decent", "it's okay", "it is okay", "could be better", "meh"]
+        is_mixed = " but " in review_lower or " however " in review_lower or any(m in review_lower for m in mediocre_markers)
+
         # A. Double Negative Detection (Positive Boost)
         # e.g. "hasn't stopped", "no issues", "no problems"
         if re.search(r"\b(hasn't|haven't|not|never|no)\b\s+\b(stopped|bad|problem|issue|complaint|regret|trouble|broken)\b", review_lower):
             final_rating = 5.0
+            is_mixed = False # Clear positive signal
             
-        # B. 'But' Clause Penalty (Mixed Sentiment)
-        elif " but " in review_lower or " however " in review_lower:
-            # If they say "works fine but...", it's never a 5.0.
+        # B. Mixed/Mediocre Penalty
+        if is_mixed:
+            # If it's mixed, it should hover around 3.0
             final_rating = min(final_rating, 3.0)
             
         # C. Performance Failure Overrides
@@ -118,9 +123,10 @@ def predict():
             # If it has specific issues like 'loud' or 'cannot handle', it's NOT a 5.
             if final_rating > 2.5: final_rating = 2.5
             
-        # D. Strong Positive Overrides
-        elif any(w in review_lower for w in ["excellent", "perfect", "amazing", "love", "best", "sturdy", "durable", "worth it"]):
-            if final_rating < 4.0: final_rating = 5.0
+        # D. Strong Positive Overrides (ONLY if NOT mixed and NO performance issues)
+        elif not is_mixed and perf_score > -3:
+            if any(w in review_lower for w in ["excellent", "perfect", "amazing", "love", "best", "sturdy", "durable", "worth it"]):
+                if final_rating < 4.0: final_rating = 5.0
 
         # Granularity 0.5
         final_rating = round(final_rating * 2) / 2
